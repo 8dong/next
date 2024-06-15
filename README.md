@@ -236,7 +236,7 @@ Loading 컴포넌트는 Page 컴포넌트 내용을 로드하는 동안 Loading 
 
 위와 같이 Page 컴포넌트가 자동으로 Suspense 컴포넌트로 래핑되며 fallback prop으로 Loading 컴포넌트를 전달하고 있습니다. 즉, Loading 컴포넌트는 페이지 전체에 대한 fallback 컴포넌트로서 동작하게 됩니다.
 
-주의할 점으로는 Loading 컴포넌트는 Hard Navigation의 경우에는 표시되지 않으며 Soft Navigation의 경우에만 표시됩니다. 이는 Page 컴포넌트가 RSC로서 서버에서 미리 실행하여 렌더링되기 때문에 비동기 처리를 기다리지 않습니다.
+주의할 점으로는 Loading 컴포넌트는 Hard Navigation의 경우에만 표시되며 Soft Navigation의 경우에는 표시되지 않습니다. 즉, loading.tsx는 전체 페이지 로드 시에만 자동으로 동작하며 Soft Navigation을 사용하는 경우에는 수동으로 로딩 상태를 관리해야 합니다.
 
 ### error.tsx
 
