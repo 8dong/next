@@ -743,3 +743,58 @@ export default function ClientComponent() {
 
 예를 들어, 현재 URL path 값이 "/blog/hello-world"인 경우 useSelectedLayoutSegment 훅은 "hello-world"를 반환하고, useSelectedLayoutSegments 훅은 ["blog", "hello-world"]를 반환합니다.
 
+
+### Caching
+
+### Request Memoization
+
+Request Memoization은 동일한 라우트에서 동일한 설정을 갖는 fetch Request를 중복 요청하지 않고 단일 요청으로 전달하게 됩니다. 즉, 동일한 라우트 내 여러 다른 서버 컴포넌트에서 동일한 설정을 같는 fetch를 호출하더라도 단일 요청으로 전달됩니다. 이는 페이지 첫 렌더링 시점에만 이루어집니다.
+
+예를 들어, Layout과 Page 컴포넌트가 서버 컴포넌트로 작성되었고, 두 컴포넌트 모두 동일한 설정을 갖는 fetch 함수를 호출하게 되면 요청이 두 번 전달되지 않고 단일 요청으로 전달됩니다.
+
+> Request Memoization은 GET 메서드인 fetch에만 적용되며 서버 컴포넌트에만 해당됩니다. 즉, Route Handlers의 fetch에는 해당되지 않습니다.
+
+### Data Cache
+
+Next는 fetch 함수를 통해 서버에서 가져온 응답 데이터를 Next 서버측에 캐싱하고 응답 데이터를 재사용합니다. 즉, Next 서버에서 백엔드로 보내는 요청에 대해서 Next 서버가 해당 요청에 대한 응답 데이터를 캐싱하게 됩니다.
+
+명시적으로 Next 서버에 캐싱된 응답 데이터를 무효화하고 재검증하기 위해 아래와 같은 방법을 사용할 수 있습니다.
+
+- revalidatePath('/,,,', 'page' | 'layout'): 특정 라우트 세그먼트를 전달하여 라우트 전체 fetch에 대해서 재검증을 수행할 수 있습니다.
+
+- fetch('https://,,,', { cache: 'force-cache' | 'no-store' }): cache 옵션으로 개별 요청에 대한 응답 데이터 캐싱 사용여부를 설정할 수 있습니다.
+
+- fetch('https://,,,', { next: { revalidate: number }}): next.revalidate 옵션으로 개별 요청에 대한 응답 데이터가 캐싱될 시간을 초단위로 작성할 수 있습니다.
+
+- Route Segment Config: dynamic 혹은 revalidate 옵션을 사용하여 라우트 전체에 대한 캐싱을 설정할 수 있습니다.
+
+### Full Route Cache
+
+기본적으로 Next는 빌드 타임때 페이지를 미리 생성하고 렌더링된 결과를 Next 서버에 캐싱합니다. 이후 클라이언트가 페이지를 요청하면 Next 서버에 캐싱된 렌더링 결과를 전달하게 됩니다.
+
+만약 페이지 생성 방식을 명시적으로 변경하고 싶다면 아래와 같은 방법을 사용할 수 있습니다.
+
+- Route Segments Config: dynamic 혹은 revalidate 옵션을 사용하여 페이지 생성 방식을 설정할 수 있습니다.
+
+- revalidatePath('/,,,', 'page' | 'layout'): 특정 라우트 세그먼트를 전달하여 페이지 생성 시점을 설정할 수 있습니다.
+
+> Dynamic Functions(cookies, headers), searchParams prop 혹은 Data Cache를 사용하지 않는 "no-store" 옵션을 사용하는 경우 해당 페이지는 Full Route Cache가 동작하지 않게 됩니다. 즉, Full Route Cache가 동작하는 경우는 Data Cache를 사용하며 Dynamic Functions나 searchParams porp을 사용하지 않는 경우에만 Full Route Cache가 동작하게 됩니다.
+
+### Route Cache
+
+Next는 클라이언트측 인메모리에 응답으로 전달받은 서버 컴포넌트들을 캐싱하고 있습니다. 즉, Route Cache는 Next 서버가 아닌 클라이언트측에서 이루어지는 캐싱입니다.
+
+Route Cache는 두 종류가 존재하며 Dynamically Rendered 혹은 Statically Rendered인 경우에 따라서 캐싱 지속시간이 달라집니다.
+
+Dynamic Functions(headers, cookies) 함수를 사용하지 않고 searchParams prop도 접근하지 않으며 Data Cache를 사용하는 경우에만 Statically Rendered로 설정되며 이외 경우에는 Dynamically Rendered로 설정됩니다.
+
+Dynamically Rendered의 경우에는 캐싱 지속시간이 30초이고, Statically Rendered의 경우에는 5분으로 설정됩니다.
+캐싱 지속시간이 이후 Dynamically Rendered의 경우 서버측에서 다시 실행한 렌더링 결과를 클라이언트측에 전달하고 Statically Rendered의 경우에는 서버측에서 캐싱하고 있는 렌더링 결과를 클라이언트측에 전달하게 됩니다.
+
+Route Cache 기능은 아예 끌 수 는 없으며 무효화하고자 한다면 아래와 같은 방법을 사용할 수 있습니다.
+
+- revalidatePath('/,,,', 'page' | 'layout'): 특정 라우트 세그먼트를 전달하여 Route Cache를 무효화할 수 있습니다.
+
+- cookies: "next/headers"가 제공하는 cookies 함수로 set 혹은 delete하는 경우 Route Cache가 무효화됩니다. 이때 set와 delete의 경우에는 Server Actions, Route Handlers에서만 가능하므로 Route Cache의 경우에는 Server Actions에만 해당됩니다.
+
+- router.refresh: useRouter 훅이 반환하는 객체의 refresh 함수를 호출하여 명시적으로 Route Cache를 무효화할 수 있습니다.
