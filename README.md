@@ -174,7 +174,7 @@ export default function Layout({ children }: LayoutProps) {
 
 ### template.tsx
 
-template.tsx는 layout.tsx와 유사하게 페이지 레이아웃 역할을 하지만 Layout 컴포넌트와는 다르게 Soft Navigation하는 경우 매번 새로웁게 마운트됩니다.
+template.tsx는 layout.tsx와 유사하게 페이지 레이아웃 역할을 하지만 Layout 컴포넌트와는 다르게 Soft Navigation하는 경우 매번 새롭게 렌더링됩니다.
 
 template.tsx와 layout.tsx를 같이 사용하게 된다면 아래와 같이 Layout 컴포넌트 하위에 Template 컴포넌트가 렌더링되고, Template 컴포넌트 하위에 Page 컴포넌트가 렌더링됩니다. 일반적으로 Layout과 유사한 역할을 하므로 하나만 사용하며, 되도록 특별한 이유가 없다면 Layout 컴포넌트를 사용해야 합니다.
 
@@ -185,7 +185,7 @@ template.tsx와 layout.tsx를 같이 사용하게 된다면 아래와 같이 Lay
 </Layout>
 ```
 
-Template 컴포넌트는 아래와 처럼 매번 마운트가 필요한 경우에 유용하게 사용할 수 있습니다.
+Template 컴포넌트는 아래와 처럼 매번 렌더링이 필요한 경우에 유용하게 사용할 수 있습니다.
 
 - "use client"를 작성하여 클라이언트 컴포넌트로 설정하고 useEffect나 useState훅에 의존하는 기능이 필요한 경우 사용할 수 있습니다.
 
@@ -307,11 +307,11 @@ export async function GET(request: NextRequest, context: { params: { [key: strin
 }
 ```
 
-참고로 GET 메서드의 Route Handlers는 캐싱 옵션이 디폴드로 설정되어 있습니다. 하지만 아래와 같은 경우에는 캐싱되지 않습니다.
+참고로 GET 메서드의 Route Handlers를 Response 객체와 함께 사용할 때 Route Handlers의 응답값은 Next 서버의 Data Cache를 이용하여 캐싱됩니다. 하지만 아래와 같은 경우에는 캐싱되지 않습니다.
 
 - Request 객체에 접근하는 경우
 
-- 다른 HTTP Method 함수도 존재하는 경우
+- 같은 파일 내 다른 HTTP Method 함수도 존재하는 경우
 
 - cookies 혹은 headers와 같은 Dynamic Functions를 사용하는 경우
 
@@ -397,3 +397,349 @@ NextResponse.rewrite(new URL('/proxy', reqeust.url))
 // next 메서드는 요청을 중단하지 않고 다음 단계로 넘길 수 있습니다. 즉, 미들웨어 이후 실제 요청을 이어서 진행하도록 도와줍니다.
 NextResponse.next()
 ```
+
+### Route Segment Config
+
+layout.tsx, page.tsx, Route Handlers에는 Route Segment 옵션을 설정할 수 있습니다. 
+
+Route Segment 옵션을 통해 데이터 Next 서버에 캐싱되어 있는 Data Cache와 Full Route Cache를 다룰 수 있습니다.
+
+#### dynamic
+
+- "auto"(default): Next가 페이지에서 사용되는 테이터 소스와 fetch 요청을 분석하여 자동으로 페이지 생성 방식을 정적 혹은 동적으로 결정하게 됩니다.
+
+- "force-dynamic": Next 서버의 Data Cache와 Full Route Cache를 사용하지 않도록 설정합니다. 즉, 매번 fetch하여 받은 응답값을 사용하고 매번 페이지를 생성하여 클라이언트측에 전달합니다.
+
+- "force-static": Next 서버의 Data Cache와 Full Route Cache를 사용하도록 설정합니다. 즉, fetch에 대한 응답값은 Next 서버에 캐싱된 데이터(Data Cache)를 재사용하고 페이지의 경우 빌드 타임때 생성한 페이지(Full Route Cache)를 클라이언트측에 전달합니다.
+
+#### dynamicParams
+
+- true(default): 동적 라우팅 처리가 런타임에 요청된 경로로 동적으로 해석되어 처리됩니다.
+
+- false: 동적 경로가 런타임이 아닌 빌드 타임때 결정되기 때문에 getStaticPath라는 함수를 export하여 생성될 동적 경로 정보를 작성해주어야 합니다.
+
+```javascript
+export const dynamicParams = false
+
+// ,,,
+
+export async function getStaticPaths() {
+  const paths = [
+    { params: { slug: 'post-1' }},
+    { params: { slug: 'post-2' }}
+  ]
+
+  return { paths, fallback: false }
+}
+```
+
+#### revalidate
+
+Data Cache와 Full Route Cache의 캐싱 지속시간을 설정할 수 있습니다.
+
+- false(default): fetch의 응답 데이터는 Next 서버의 Data Cache에 캐싱된 데이트를 재사용하고, 페이지는 빌드 타임때 생성한 페이지를 사용하게 됩니다.
+
+- number: Next 서버의 Data Cache에 캐싱된 fetch 응답값과 Full Route Cache의 지속시간을 초 단위로 설정할 수 있습니다.
+
+```javascript
+export const revalidate = 3600
+
+// ,,,
+```
+
+### Linking and Navigating
+
+#### Link
+
+"next/link"가 제공하는 Link 컴포넌트는 html a 태그를 확장한 컴포넌트로서 prefetching 기능까지 제공합니다. Link 컴포넌트는 RSC와 RCC 둘 다 사용할 수 있습니다.
+
+Link 컴포넌트트는 a 태그를 확장한 컴포넌트로 a 태그에 작성 가능한 어트리뷰트들을 그대로 작성할 수 있습니다.
+
+```javascript
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <>
+      <Link href="/item" />
+    </>
+  )
+}
+```
+
+#### useRouter
+
+"next/navigation"이 제공하는 userRouter 훅이 반환하는 객체를 통해서 Soft Navigating을 사용할 수 있습니다. useRouter는 리액트 훅으로 RCC에서만 사용할 수 있습니다.
+
+```javascript
+"use client"
+
+import { useRouter } from 'next/navigation'
+
+export default function Page() {
+  const router = useRouter()
+
+  // History stack에 하나의 스택을 push 하고 이동합니다.
+  router.push('/items')
+
+  // 현재 URL에 대해 refresh를 수행합니다.
+  router.refresh()
+
+  // 특정 URL을 prefetching하여 더 빠른 Navigating을 제공합니다.
+  router.prefetch('/item')
+
+  // History stack에서 하나의 스택을 pop 하고 이동합니다.
+  router.back()
+
+  // History stack에서 하나의 스택 앞으로 이동합니다.
+  router.forward()
+
+  // ,,,
+}
+```
+
+#### permanentRedirect
+
+"next/navigation"이 제공하는 permanentRedirect 함수는 RCC, RSC, Route Handlers, Server Actions 모두 사용 가능합니다. 
+
+```javascript
+import { permanentRedirect }  from 'next/navigation'
+
+export default function Page() {
+  permanentRedirect('/login', { type: 'replace' })
+
+  // ,,,
+}
+```
+
+permanentRedirect 함수 첫 번째 인수로는 URL을 전달하고 두 번째 인수로는 객체를 전달할 수 있으며 type 프로퍼티에 "replace"(default) 혹은 "push"를 전달할 수 있습니다.
+주의할 점으로 Server Actions에서 사용할 경우에는 type의 default가 push로 동작하게 됩니다.
+
+#### redirect
+
+"next/navigation"이 제공하는 redirect 함수는 RSC, Route Handlers, Server Actions에서만 사용 가능합니다. 
+
+```javascript
+import { redirect }  from 'next/navigation'
+
+export default function Page() {
+  redirect('/login', { type: 'replace' })
+
+  // ,,,
+}
+```
+
+redirect 함수 첫 번째 인수로는 URL을 전달하고 두 번째 인수로는 객체를 전달할 수 있으며 type 프로퍼티에 "replace"(default) 혹은 "push"를 전달할 수 있습니다.
+
+#### notFound
+
+"next/navigation"이 제공하는 notFound 함수는 
+
+## Functions
+
+### cookies
+
+"next/headers"가 제공하는 cookies 함수는 RSC, Server Actions, Route Handlers에서 사용 가능한 함수로 요청 객체의 쿠키 값을 읽을 수 있습니다.
+
+```javascript
+import { cookies } from 'next/headers'
+
+export default function Page() {
+  const cookieStore = cookies()
+
+  // 인수로 전달한 쿠키 이름과 매칭된 쿠키값을 반환합니다. 매칭된 쿠키가 없는 경우 undeinfed를 반환합니다.
+  // 매칭된 결과가 여러 개인 경우에도 하나만 반환합니다.
+  cookieStore.get('key')
+
+  // 인수로 전달한 쿠키 이름과 매칭된 쿠키값들을 반환합니다.
+  // get 메서드와는 다르게 매칭된 모든 쿠키값들을 요소로 갖는 배열로 반환합니다.
+  cookieStore.getAll('key')
+
+  // 인수로 전달한 쿠키 이름과 매칭된 쿠키값 존재 여부를 불리언 값으로 반환합니다.
+  cookieStore.has('key')
+}
+```
+
+```javascript
+import { cookies } from 'next/headers'
+
+export async function GET() {
+  const cookieStore = cookies()
+
+  // 요청 객체의 쿠키값을 set할 수 있습니다.
+  // 주의할 점으로 set 메서드는 Server Actions와 Route Handlers에서만 사용할 수 있습니다.
+  cookieStore.set('key', 'value')
+  cookieStore.set({ name: 'key', value: 'value' })
+
+  // 요청 객체의 쿠키값을 제거할 수 있습니다.
+  // 주의할 점으로 set 메서드는 Server Actions와 Route Handlers에서만 사용할 수 있습니다.
+  cookieStore.delete('key')
+}
+```
+
+### headers
+
+"next/headers"가 제공하는 headers 함수는 Server Components에서 사용 가능한 함수로 요청 헤더 값을 읽을 수 있습니다.
+
+headers 함수가 반환하는 헤더 값은 읽기 전용으로 set, delete와 같은 동작은 할 수 없습니다.
+
+```javascript
+import { headers } from 'next/headers'
+
+export default function Page() {
+  const headersList = headers()
+
+  // headers 값을 key, value로 갖는 이터레이터 객체를 반환합니다.
+  headersList.entries()
+
+  // 인수로 전달한 콜백은 key, value로 갖는 객체를 인수로 전달받아 실행됩니다.
+  headersList.forEach()
+
+  // 인수로 전달한 key와 매칭된 value를 반환합니다.
+  headersList.get()
+
+  // 인수로 전달한 key와 매칭된 value 여부를 불리언 값으로 반환합니다.
+  headersList.has()
+
+  // key 값을 갖는 이터레이터 객체를 반환합니다.
+  headersList.keys()
+
+  // value 값을 갖는 이터레이터 객체를 반환합니다.
+  headersList.values()
+}
+```
+
+### fetch
+
+Next.js는 Web fetch API를 확장하여 제공합니다. fetch 자체는 Web API로 서버 사이드에서 사용할 수 없지만 Next에서는 RSC, Server Actions, Route Handlers 등 모두 사용할 수 있습니다.
+
+```javascript
+export default function Page() {
+  // force-cache: 기본 캐싱 동작이며, 이전에 요청하여 받은 응답 데이터가 Next 서버에 캐싱되어 있다면 이를 재사용합니다.
+  // 이는 최신 데이터를 반영하지 않을 수 있습니다.
+  fetch('https://,,,', { cache: 'force-cache' })
+  
+  // no-soter: 항상 최신 데이터를 가져와야할 경우에 no-soter 옵션을 명시해주어야 합니다.
+  // 이는 캐싱 사용을 비활성화 합니다.
+  fetch('https://,,,', { cache: 'no-store' })
+
+  // revalidate 옵션을 통해 cache lifetime을 명시할 수 있습니다.
+  // 초 단위 숫자값을 작성하여 cache lifetime을 지정할 수 있습니다. 즉, revalidate 값을 0은 no-store이며 양수값을 작성한 경우 force-cache를 암시합니다.
+  fetch('https://,,,', { next: { revalidate: 10 }})
+}
+```
+
+fetch의 Data Cache 주의할 점은 아래와 같습니다.
+
+- fetch는 기본적으로 force-cache를 사용하며, cookies나 headers와 같은 Dynamic Functions를 사용하는 경우에는 no-store를 기본적으로 사용하게 됩니다.
+
+- fetch의 revalidate 값이 route revalidate보다 작은 경우 라우트 재생성 간격이 감소하게 됩니다.
+
+- 같은 URL에 대한 fetch가 존재하고 revalidate 값이 둘 다 존재한다면 더 작은 revalidate 값이 사용됩니다.
+
+- { revalidate: 0, cache: 'cache-force' } 혹은 { revalidate: number, cache: 'no-store' } 와 같은 옵션은 서로 충돌을 일으켜 애러가 발생하게 됩니다.
+
+### revalidatePath
+
+"next/cache"가 제공하는 revalidatePath 함수는 특정 경로에 대한 캐싱을 모두 무효화하여 최신 데이터를 반영되도록 도와줍니다. 즉, Next 서버측에 캐싱되어 있던 Data Cache와 Full Route Cache 모두 무효화하는 역항를 합니다.
+
+revalidatePath를 호출하면 해당 경로에서 Next 서버에 캐싱된 fetch 응답 데이터와 빌드 타임때 생성되어 캐싱된 페이지를 무효화시킵니다.
+이후 다음 번에 사용자가 해당 경로를 요청한 경우 Next가 새로운 데이터를 가져와 페이지를 다시 생성하여 응답으로 전달해줍니다. 이 과정에서 새롭게 생성된 정적 파일과 데이터가 캐시에 저장됩니다.
+
+revalidatePath 함수는 Route Handlers나 Server Actions에서 호출 가능합니다.
+
+```javascript
+import { NextRequest ,NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
+
+export async function POST(request: NextRequest) {
+  const { path } = request.nextUrl.searchParams('path')
+
+  if(path) {
+    revalidatePath(path, 'page')
+    return NextResponse.json({ revalidated: true, now: Date.now() })
+  } else {
+    return NextResponse.json({ revalidated: false, now: Date.now() })
+  }
+}
+```
+
+revalidatePath 함수 첫 번째 인수로는 무효화할 라우트 세그먼트를 작성하고, 두 번째 인수로는 "layout" 혹은 "page"를 전달합니다.
+
+- "layout": "layout" 전달 시 첫 번째 인수로 전달한 라우트뿐만 아니라 하위 라우트까지 모두 재검증하게 됩니다.
+
+- "page"(default): "page" 전달 시 첫 번째 인수로 전달한 라우트만 재검증하게 됩니다,
+
+즉, "layout"이 "page"보다 재검증하는 범위가 더 큽니다.
+
+### useParams
+
+"next/navigation"이 제공하는 useParams 훅은 동적 라우팅하는 경우 동적으로 결정된 path값을 객체 형태로 반환합니다.
+
+```javascript
+'use client'
+
+import { useParams } from 'next/navigation'
+
+export default function ClientComponent() {
+  const params = useParams()
+
+  // ,,,
+}
+```
+
+### usePathname
+
+"next/navigation"이 제공하는 usePathname 훅은 현재 URL의 path 값을 string으로 반환합니다.
+
+```javascript
+'use client'
+
+import { usePathname } from 'next/navigation'
+
+export default function ClientComponent() {
+  const pathanem = usePathname()
+
+  // ,,,
+}
+```
+
+### useSearchParams
+
+"next/navigation"이 제공하는 useSearchParams 훅은 현재 URL의 쿼리스트링 정보를 일기 전용인 URLSearchParams 객체를 반환합니다.
+
+```javascript
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+export default function ClientComponent() {
+  const searchParams = useSearchParams()
+
+  // 쿼리스트링의 value 값을 요소로 갖는 배열을 반환합니다.
+  searchParams.getAll()
+
+  // 쿼리스트링의 key 값을 요소로 갖는 이터레이터 객체를 반환합니다.
+  searchParams.keys()
+
+  // 쿼리스트링의 value 값을 요소로 갖는 이터레이터 객체를 반환합니다.
+  searchParams.values()
+
+  // 쿼리스트링의 key, value 값을 요소로 갖는 배열을 요소로 갖는 이터레이터 객체를 반환합니다.
+  searchParams.entries()
+
+  // 인수로 전달한 콜백은 key, value 값을 순차적으로 전달받으며 실행됩니다.
+  searchParams.forEach((key, value) => { 
+    // ,,,
+   })
+
+  // ,,,
+}
+```
+
+### useSelectedlayoutSegment && useSelectedlayoutSegments
+
+"next/navigation"이 제공하는 useSelectedLayoutSegment 훅은 현재 활성화된 한 단계 하위 라우트 세그먼트 반환합니다. useSelectedLayoutSegments 훅은 현재 활성화된 모든 라우트 세그먼크 값을 요소로 갖는 배열을 반환합니다.
+
+예를 들어, 현재 URL path 값이 "/blog/hello-world"인 경우 useSelectedLayoutSegment 훅은 "hello-world"를 반환하고, useSelectedLayoutSegments 훅은 ["blog", "hello-world"]를 반환합니다.
+
