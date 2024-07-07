@@ -761,7 +761,7 @@ export default function Page() {
     // ,,,
   }
 
-  return <form action={create}>,,,</form>
+  return <form action={create}>,,,</form>;
 }
 ```
 
@@ -770,18 +770,18 @@ export default function Page() {
 useFormStatus 훅은 "react-dom"이 제공하는 클라이언트 훅으로 form 제출에 대한 정보를 제공합니다. useFormStatus 훅을 사용하는 컴포넌트는 form 태그를 갖는 컴포넌트 자식으로 작성되어야 합니다.
 
 ```javascript
-'use client'
+'use client';
 
-import { useFormState } from 'react-dom'
+import { useFormState } from 'react-dom';
 
 export default function SubmitButton() {
-  const { pending } = useFormState()
+  const { pending } = useFormState();
 
   return (
-    <button type="submit" disabled={pending}>
+    <button type='submit' disabled={pending}>
       Add
     </button>
-  )
+  );
 }
 ```
 
@@ -795,24 +795,20 @@ useActionState 훅 첫 번째 인수로는 Server Action 함수를 전달하고 
 useActionState 훅은 배열을 반환하며 배열의 첫 번째 요소는 Server Action이 반환하는 값, 두 번째 요소는 React가 제어하는 Server Action을 반환합니다. 이때 두 번째 요소로 반환한 Server Action을 form 태그의 action 어트리뷰트로 전달하면 React가 Server Action이 반환하는 값에 접근할 수 있게 됩니다.
 
 ```javascript
-'use client'
+'use client';
 
-import { useActionState } from 'react'
+import { useActionState } from 'react';
 
-import { createUser } from '@/app/actions'
+import { createUser } from '@/app/actions';
 
 const initState = {
   message: ''
-}
+};
 
 export default function SignUp() {
-  const [state, formAction] = useActionState(createUser, initState)
+  const [state, formAction] = useActionState(createUser, initState);
 
-  return (
-    <form action={formAction}>
-      ,,,
-    </form>
-  )
+  return <form action={formAction}>,,,</form>;
 }
 ```
 
@@ -868,3 +864,128 @@ Route Cache 기능은 아예 끌 수 는 없으며 무효화하고자 한다면 
 - cookies: "next/headers"가 제공하는 cookies 함수로 set 혹은 delete하는 경우 Route Cache가 무효화됩니다. 이때 set와 delete의 경우에는 Server Actions, Route Handlers에서만 가능하므로 Route Cache의 경우에는 Server Actions에만 해당됩니다.
 
 - router.refresh: useRouter 훅이 반환하는 객체의 refresh 함수를 호출하여 명시적으로 Route Cache를 무효화할 수 있습니다.
+
+## Optimization
+
+### Image Optimization
+
+"next/image"가 제공하는 Image 컴포넌트를 통해 이미지를 최적화할 수 있습니다.
+
+- 사이즈 최적화: Next 서버는 자동으로 이미지 파일의 크기나 포맷을 최적화하여 제공해줍니다.
+
+- CLS 방지: 이미지가 로드될 때 layout shift 현상을 방지시켜줍니다.
+
+- lazy loading: 전반적으로 이미지 로드는 lazy load가 적용되어 페이지 로드 시간을 단축시킵니다. 즉, 이미지가 viewport에 표시될 때만 이미지를 로드하고 렌더링합니다.
+
+#### Remote Images
+
+프로젝트의 public 폴더 내 파일들은 빌드된 이후 루트 경로에 존재하게 됩니다.
+
+예를 들어, "public/images/logo.png"라는 파일은 빌드된 이후에는 "images/logo.png" 경로에 존재하게 됩니다. 그러므로 실제 src props에 작성될 경로 또한 "images/logo.png"로 작성해주어야 합니다.
+
+Remote Images를 사용하는 경우에는 반드시 width와 height를 명시해주어야 합니다. 이는 빌드 타임에 해당 이미지의 width, height 값을 Next는 알지 못하기 때문에 직접 명시해주어야 합니다.
+
+<hr />
+
+외부 이미지 경로를 작성하는 경우에는 width, height 값을 명시해주어야 하며 추가적으로 next.config.js파일에 외부 경로의 도메인을 명시해주어야 합니다.
+
+```javascript
+// next.config.js
+
+module.exports = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 's3.amazonaws.com',
+        port: '',
+        pathname: '/my-bucket/**'
+      }
+    ]
+  }
+};
+```
+
+#### Local Images
+
+이미지 파일을 import하여 src에 작성한 경우 Next가 빌드 타임에 자동으로 width, height 값을 계산하여 적용하기 때문에 따로 width, height 값을 명시해줄 필요가 없습니다.
+
+#### Props
+
+- src: 이미지 경로나 import한 파일을 작성합니다.
+
+- alt: 대체 텍스트를 작성합니다.
+
+- width: 렌더링될 이미지의 가로 사이즈(px)를 작성합니다.
+
+- height: 렌더링될 이미지의 세로 사이즈(px)를 작성합니다.
+
+> fill props가 true 혹은 Local Images를 사용하는 경우에는 width, height를 생략할 수 있습니다.
+
+- fill: 부모 요소 크기에 맞게 자동으로 이미지 크기 조정 여부를 작성합니다. 이때 부모 요소에는 position 프로퍼티 값으로 "relative", "absolute", "fixed" 값 중 하나를 작성해주어야 합니다.
+
+> fill props로 true를 작성한 경우 해당 이미지의 "position" 값이 자동으로 "absolute"로 설정되기 때문에 부모 요소의 "position"값을 "relative", "absolute", "fixed" 값 중 하나 작성해주어야 합니다.
+
+- szies: fill props이나 반응형 이미지를 사용하는 경우에 유용하게 사용되며 Next가 자동으로 생성한 srcset 정보를 기반으로 로드될 이미지 크기를 결정하는데 사용됩니다.
+
+  - 값으로는 미디어 쿼리 값을 작성하며, 디폴트 값으로는 "100vw"가 적용되어 있습니다. 즉, 디바이스의 viewport의 너비가 100vw일 때의 srcset 정보를 확인하여 이미지를 로드합니다.
+
+> srcset에 대한 정보는 Next가 자동으로 설정하게 되며, 이를 수동으로 설정하기 위해서는 next.config.js에서 images.deviceSizes, images.imageSizes로 설정할 수 있습니다. fill props 값이 false인 경우에는 images.imageSizes를 통해 생성하고, true인 경우에는 images.deviceSizes를 통해 생성합니다.
+
+- quality: 이미지의 퀄리티를 1에서 100사이 값으로 작성합니다. 기본값은 75로 적용되어 있습니다.
+
+- priority: 이미지 로드 preload 여부를 작성합니다. 기본값은 false이며, true로 설정한 경우 lazy loading 또한 비활성화 됩니다.
+
+- placeholder: 이미지가 로드되는 동안 표시할 placeholder 설정을 작성합니다.
+
+  - 기본값은 "empty"이며, 렌더링되는 동안 해당 영역을 빈 영역으로 비워둡니다.
+
+  - "blur"를 작성한 경우에는 blurDataURL props도 함께 작성해주어야 하며 blurDataURL에 base64로 인코딩된 이미지 데이터를 작성하면 해당 이미지를 표시해줍니다.
+
+- blurDataURL: placeholder props값이 "blur"인 경우에 사용되며 base64로 인코딩된 이미지 데이터를 작성합니다. 이는 이미지가 로드되는 동안 표시할 이미지를 작성합니다.
+
+### MetaData
+
+Next는 메타데이터를 설정하기 위한 Metadata API를 제공합니다.
+
+#### Static Metadata
+
+layout.tsx 혹은 page.tsx에서 metadata라는 이름의 변수를 export하여 정적 메타데이터를 설정할 수 있습니다.
+
+```javascript
+// page.tsx
+
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: ',,,',
+  description: ',,,'
+};
+
+export default function Page() {}
+```
+
+#### Dynamic Metadata
+
+"next"가 제공하는 generateMetadata 라는 함수를 export함으로써 동적 메타데이터를 설정할 수 있습니다. generateMetadata 함수는 async 함수로 정의해야하며 첫 번째 인수로 객체를 전달받고 두 번째 인수로는 상위 경로에 대한 메타데이터를 전달받습니다.
+
+첫 번째 인수로 전달받는 객체에는 params, searchParams 프로퍼티가 존재하며 이는 동적 라우팅 세그먼트와 쿼리스트링에 대한 정보를 갖고 있습니다.
+
+```javascript
+// page.tsx
+import type { Metadata, ResolvingMetadata } from 'next';
+
+type Props = {
+  params: { [key: string]: string },
+  searchParams: { [key: string]: string }
+};
+
+export async function generateMetadata({ params, searchParams }: Props, parent: ResolvingMetadata) {
+  return {
+    title: ',,,',
+    description: ',,,'
+  };
+}
+
+export default function Page({ params, searchParams }: Props) {}
+```
