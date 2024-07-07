@@ -13,7 +13,7 @@ Next v13부터 app 디렉토리 구조에 따라 라우팅 라우팅되며 각 �
 'use client'; // RCC 컴포넌트 선언
 
 export default function Page() {
-  return <main>Content,,,</main>
+  return <main>Content,,,</main>;
 }
 ```
 
@@ -31,7 +31,7 @@ export default function Page({ params }: { params: { slug: string } }) {
    * route: "/blog/b" -> { params: { slug: 'b' } }
    **/
 
-  return <main>Content,,,</main>
+  return <main>Content,,,</main>;
 }
 ```
 
@@ -130,7 +130,7 @@ export default function Page() {
     <Modal>
       <div>Warning,,,</div>
     </Modal>
-  )
+  );
 }
 ```
 
@@ -138,7 +138,7 @@ export default function Page() {
 // app/warning/page.tsx
 
 export default function Page() {
-  return <div>Warning,,,</div>
+  return <div>Warning,,,</div>;
 }
 ```
 
@@ -278,7 +278,7 @@ error.tsx는 layout.tsx나 template.tsx에서 발생한 에러는 캐치하지 �
 
 ### not-found.tsx
 
-not-found.tsx 파일은 매칭되는 라우트 세그먼트가 존재하지 않는 경우에 표시할 컴포넌트 입니다. 추가적으로 "next/navigation"의 notFound 함수를 호출하면 not-found.tsx 파일에서 export default된 컴포넌트가 렌더링됩니다. 
+not-found.tsx 파일은 매칭되는 라우트 세그먼트가 존재하지 않는 경우에 표시할 컴포넌트 입니다. 추가적으로 "next/navigation"의 notFound 함수를 호출하면 not-found.tsx 파일에서 export default된 컴포넌트가 렌더링됩니다.
 
 ### Route Handlers
 
@@ -293,16 +293,16 @@ Route Handlers가 지원하는 HTTP Method로는 GET, POST, PUT, PATCH, DELETE, 
 
 ```javascript
 // app/api/route.ts
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest, context: { params: { [key: string]: string } }) {
   try {
-    const requestBody = await request.json() // 요청 body 값
+    const requestBody = await request.json(); // 요청 body 값
 
-    const responseBody = { success: true }
-    return NextResponse.json(responseBody, { status: 200 })
-  } catch(error) {
-    return NextResponse.json('Fail to fetch data', { status: 500 })
+    const responseBody = { success: true };
+    return NextResponse.json(responseBody, { status: 200 });
+  } catch (error) {
+    return NextResponse.json('Fail to fetch data', { status: 500 });
   }
 }
 ```
@@ -324,15 +324,15 @@ export async function GET(request: NextRequest, context: { params: { [key: strin
 middleware 함수는 async 함수로 정의할 수 있으며, 인수로 요청 객체를 전달받습니다.
 
 ```javascript
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextReqeust) {
-  return NextResponse.redirect(new URL('/home', request.url))
+  return NextResponse.redirect(new URL('/home', request.url));
 }
 
 export const config = {
   matcher: ['/about/:path', '/dashboard/:path']
-}
+};
 ```
 
 미들웨어 설정의 경우에는 config라는 객체를 export하여 설정할 수 있으며, config.matcher를 통해 미들웨어를 실행할 특정 경로를 설정할 수 있습니다. 위 예제의 경우에는 "/about" 이하 모든 경로와 "/dashboard" 이하 모든 경로에 대해서 미들웨어가 실행됩니다. matcher는 정규표현식으로도 작성 가능합니다.
@@ -344,63 +344,63 @@ export const config = {
 "next/server"가 제공하는 NextRequest와 NextResponse는 Web Request/Response API를 확장한 것입니다.
 
 ```javascript
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
-const request = new NextRequest()
-const response = NextResponse.next()
+const request = new NextRequest();
+const response = NextResponse.next();
 
 // 요청/응답 cookie 값을 set 시켜줍니다.
-request.cookies.set('key', 'value')
-response.cookies.set('key', 'value')
+request.cookies.set('key', 'value');
+response.cookies.set('key', 'value');
 
 // 매칭된 cookie 값을 반환합니다.
 // 매칭된 cookie가 없는 경우 undefined를 반환하고, 여러 개가 매칭된 경우 첫 번째로 매칭된 cookie를 반환합니다.
-request.cookies.get('key')
-response.cookies.get('key')
+request.cookies.get('key');
+response.cookies.get('key');
 
 // 매칭된 모든 cookie 값을 배열에 담아 반환합니다.
-request.cookies.getAll('key')
-response.cookies.getAll('key')
+request.cookies.getAll('key');
+response.cookies.getAll('key');
 
 // 매칭된 cookie 값을 제거합니다.
 // 반환값은 제거 성공 여부를 불리언 값으로 반환합니다.
-request.cookies.delete('key')
-response.cookies.delete('key')
+request.cookies.delete('key');
+response.cookies.delete('key');
 
 // 매칭된 cookie 값 존재 여부를 불리언 값으로 반환합니다.
-request.cookies.has('key')
+request.cookies.has('key');
 
 // 요청의 Set-Cookie 헤더를 제거합니다.
-request.cookies.clear()
+request.cookies.clear();
 
 // URL 도메인을 반환합니다.
-request.nextUrl.baseUrl
+request.nextUrl.baseUrl;
 
 // URL path값을 반환합니다.
-request.nextUrl.pathname
+request.nextUrl.pathname;
 
 // URL 쿼리 스트링 값을 객체로 반환합니다.
-request.nextUrl.searchParams
+request.nextUrl.searchParams;
 
 // JSON을 body로 갖는 응답을 생성합니다.
-NextResponse.json({ success: true }, { status: 200 })
+NextResponse.json({ success: true }, { status: 200 });
 
 // 특정 URL로 redirect시키는 응답을 생성합니다.
 // 클라이언트측에서 해당 응답을 전닯받게 되면 "/home" 경로로 이동하게 됩니다.
-NextResponse.redirect(new URL('/home', reqeust.url))
+NextResponse.redirect(new URL('/home', reqeust.url));
 
 // rewrite 메서드는 route handler에서 사용할 수 없고, next middleware에서 사용할 수 있습니다.
 // redirect와는 다르게 요청한 URL path값은 변경하지 않고, 다른 페이지나 route handler로 요청을 전달할 수 있습니다.
-NextResponse.rewrite(new URL('/proxy', reqeust.url))
+NextResponse.rewrite(new URL('/proxy', reqeust.url));
 
 // next 메서드는 route handler에서 사용할 수 없고, next middleware에서 사용할 수 있습니다.
 // next 메서드는 요청을 중단하지 않고 다음 단계로 넘길 수 있습니다. 즉, 미들웨어 이후 실제 요청을 이어서 진행하도록 도와줍니다.
-NextResponse.next()
+NextResponse.next();
 ```
 
 ### Route Segment Config
 
-layout.tsx, page.tsx, Route Handlers에는 Route Segment 옵션을 설정할 수 있습니다. 
+layout.tsx, page.tsx, Route Handlers에는 Route Segment 옵션을 설정할 수 있습니다.
 
 Route Segment 옵션을 통해 데이터 Next 서버에 캐싱되어 있는 Data Cache와 Full Route Cache를 다룰 수 있습니다.
 
@@ -419,17 +419,14 @@ Route Segment 옵션을 통해 데이터 Next 서버에 캐싱되어 있는 Data
 - false: 동적 경로가 런타임이 아닌 빌드 타임때 결정되기 때문에 getStaticPath라는 함수를 export하여 생성될 동적 경로 정보를 작성해주어야 합니다.
 
 ```javascript
-export const dynamicParams = false
+export const dynamicParams = false;
 
 // ,,,
 
 export async function getStaticPaths() {
-  const paths = [
-    { params: { slug: 'post-1' }},
-    { params: { slug: 'post-2' }}
-  ]
+  const paths = [{ params: { slug: 'post-1' } }, { params: { slug: 'post-2' } }];
 
-  return { paths, fallback: false }
+  return { paths, fallback: false };
 }
 ```
 
@@ -442,7 +439,7 @@ Data Cache와 Full Route Cache의 캐싱 지속시간을 설정할 수 있습니
 - number: Next 서버의 Data Cache에 캐싱된 fetch 응답값과 Full Route Cache의 지속시간을 초 단위로 설정할 수 있습니다.
 
 ```javascript
-export const revalidate = 3600
+export const revalidate = 3600;
 
 // ,,,
 ```
@@ -456,14 +453,14 @@ export const revalidate = 3600
 Link 컴포넌트트는 a 태그를 확장한 컴포넌트로 a 태그에 작성 가능한 어트리뷰트들을 그대로 작성할 수 있습니다.
 
 ```javascript
-import Link from 'next/link'
+import Link from 'next/link';
 
 export default function Page() {
   return (
     <>
-      <Link href="/item" />
+      <Link href='/item' />
     </>
-  )
+  );
 }
 ```
 
@@ -472,27 +469,27 @@ export default function Page() {
 "next/navigation"이 제공하는 userRouter 훅이 반환하는 객체를 통해서 Soft Navigating을 사용할 수 있습니다. useRouter는 리액트 훅으로 RCC에서만 사용할 수 있습니다.
 
 ```javascript
-"use client"
+'use client';
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
-  const router = useRouter()
+  const router = useRouter();
 
   // History stack에 하나의 스택을 push 하고 이동합니다.
-  router.push('/items')
+  router.push('/items');
 
   // 현재 URL에 대해 refresh를 수행합니다.
-  router.refresh()
+  router.refresh();
 
   // 특정 URL을 prefetching하여 더 빠른 Navigating을 제공합니다.
-  router.prefetch('/item')
+  router.prefetch('/item');
 
   // History stack에서 하나의 스택을 pop 하고 이동합니다.
-  router.back()
+  router.back();
 
   // History stack에서 하나의 스택 앞으로 이동합니다.
-  router.forward()
+  router.forward();
 
   // ,,,
 }
@@ -500,13 +497,13 @@ export default function Page() {
 
 #### permanentRedirect
 
-"next/navigation"이 제공하는 permanentRedirect 함수는 RCC, RSC, Route Handlers, Server Actions 모두 사용 가능합니다. 
+"next/navigation"이 제공하는 permanentRedirect 함수는 RCC, RSC, Route Handlers, Server Actions 모두 사용 가능합니다.
 
 ```javascript
-import { permanentRedirect }  from 'next/navigation'
+import { permanentRedirect } from 'next/navigation';
 
 export default function Page() {
-  permanentRedirect('/login', { type: 'replace' })
+  permanentRedirect('/login', { type: 'replace' });
 
   // ,,,
 }
@@ -517,13 +514,13 @@ permanentRedirect 함수 첫 번째 인수로는 URL을 전달하고 두 번째 
 
 #### redirect
 
-"next/navigation"이 제공하는 redirect 함수는 RSC, Route Handlers, Server Actions에서만 사용 가능합니다. 
+"next/navigation"이 제공하는 redirect 함수는 RSC, Route Handlers, Server Actions에서만 사용 가능합니다.
 
 ```javascript
-import { redirect }  from 'next/navigation'
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-  redirect('/login', { type: 'replace' })
+  redirect('/login', { type: 'replace' });
 
   // ,,,
 }
@@ -533,7 +530,7 @@ redirect 함수 첫 번째 인수로는 URL을 전달하고 두 번째 인수로
 
 #### notFound
 
-"next/navigation"이 제공하는 notFound 함수는 
+"next/navigation"이 제공하는 notFound 함수는
 
 ## Functions
 
@@ -542,38 +539,38 @@ redirect 함수 첫 번째 인수로는 URL을 전달하고 두 번째 인수로
 "next/headers"가 제공하는 cookies 함수는 RSC, Server Actions, Route Handlers에서 사용 가능한 함수로 요청 객체의 쿠키 값을 읽을 수 있습니다.
 
 ```javascript
-import { cookies } from 'next/headers'
+import { cookies } from 'next/headers';
 
 export default function Page() {
-  const cookieStore = cookies()
+  const cookieStore = cookies();
 
   // 인수로 전달한 쿠키 이름과 매칭된 쿠키값을 반환합니다. 매칭된 쿠키가 없는 경우 undeinfed를 반환합니다.
   // 매칭된 결과가 여러 개인 경우에도 하나만 반환합니다.
-  cookieStore.get('key')
+  cookieStore.get('key');
 
   // 인수로 전달한 쿠키 이름과 매칭된 쿠키값들을 반환합니다.
   // get 메서드와는 다르게 매칭된 모든 쿠키값들을 요소로 갖는 배열로 반환합니다.
-  cookieStore.getAll('key')
+  cookieStore.getAll('key');
 
   // 인수로 전달한 쿠키 이름과 매칭된 쿠키값 존재 여부를 불리언 값으로 반환합니다.
-  cookieStore.has('key')
+  cookieStore.has('key');
 }
 ```
 
 ```javascript
-import { cookies } from 'next/headers'
+import { cookies } from 'next/headers';
 
 export async function GET() {
-  const cookieStore = cookies()
+  const cookieStore = cookies();
 
   // 요청 객체의 쿠키값을 set할 수 있습니다.
   // 주의할 점으로 set 메서드는 Server Actions와 Route Handlers에서만 사용할 수 있습니다.
-  cookieStore.set('key', 'value')
-  cookieStore.set({ name: 'key', value: 'value' })
+  cookieStore.set('key', 'value');
+  cookieStore.set({ name: 'key', value: 'value' });
 
   // 요청 객체의 쿠키값을 제거할 수 있습니다.
   // 주의할 점으로 set 메서드는 Server Actions와 Route Handlers에서만 사용할 수 있습니다.
-  cookieStore.delete('key')
+  cookieStore.delete('key');
 }
 ```
 
@@ -584,28 +581,28 @@ export async function GET() {
 headers 함수가 반환하는 헤더 값은 읽기 전용으로 set, delete와 같은 동작은 할 수 없습니다.
 
 ```javascript
-import { headers } from 'next/headers'
+import { headers } from 'next/headers';
 
 export default function Page() {
-  const headersList = headers()
+  const headersList = headers();
 
   // headers 값을 key, value로 갖는 이터레이터 객체를 반환합니다.
-  headersList.entries()
+  headersList.entries();
 
   // 인수로 전달한 콜백은 key, value로 갖는 객체를 인수로 전달받아 실행됩니다.
-  headersList.forEach()
+  headersList.forEach();
 
   // 인수로 전달한 key와 매칭된 value를 반환합니다.
-  headersList.get()
+  headersList.get();
 
   // 인수로 전달한 key와 매칭된 value 여부를 불리언 값으로 반환합니다.
-  headersList.has()
+  headersList.has();
 
   // key 값을 갖는 이터레이터 객체를 반환합니다.
-  headersList.keys()
+  headersList.keys();
 
   // value 값을 갖는 이터레이터 객체를 반환합니다.
-  headersList.values()
+  headersList.values();
 }
 ```
 
@@ -617,15 +614,15 @@ Next.js는 Web fetch API를 확장하여 제공합니다. fetch 자체는 Web AP
 export default function Page() {
   // force-cache: 기본 캐싱 동작이며, 이전에 요청하여 받은 응답 데이터가 Next 서버에 캐싱되어 있다면 이를 재사용합니다.
   // 이는 최신 데이터를 반영하지 않을 수 있습니다.
-  fetch('https://,,,', { cache: 'force-cache' })
-  
+  fetch('https://,,,', { cache: 'force-cache' });
+
   // no-soter: 항상 최신 데이터를 가져와야할 경우에 no-soter 옵션을 명시해주어야 합니다.
   // 이는 캐싱 사용을 비활성화 합니다.
-  fetch('https://,,,', { cache: 'no-store' })
+  fetch('https://,,,', { cache: 'no-store' });
 
   // revalidate 옵션을 통해 cache lifetime을 명시할 수 있습니다.
   // 초 단위 숫자값을 작성하여 cache lifetime을 지정할 수 있습니다. 즉, revalidate 값을 0은 no-store이며 양수값을 작성한 경우 force-cache를 암시합니다.
-  fetch('https://,,,', { next: { revalidate: 10 }})
+  fetch('https://,,,', { next: { revalidate: 10 } });
 }
 ```
 
@@ -649,17 +646,17 @@ revalidatePath를 호출하면 해당 경로에서 Next 서버에 캐싱된 fetc
 revalidatePath 함수는 Route Handlers나 Server Actions에서 호출 가능합니다.
 
 ```javascript
-import { NextRequest ,NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(request: NextRequest) {
-  const { path } = request.nextUrl.searchParams('path')
+  const { path } = request.nextUrl.searchParams('path');
 
-  if(path) {
-    revalidatePath(path, 'page')
-    return NextResponse.json({ revalidated: true, now: Date.now() })
+  if (path) {
+    revalidatePath(path, 'page');
+    return NextResponse.json({ revalidated: true, now: Date.now() });
   } else {
-    return NextResponse.json({ revalidated: false, now: Date.now() })
+    return NextResponse.json({ revalidated: false, now: Date.now() });
   }
 }
 ```
@@ -677,12 +674,12 @@ revalidatePath 함수 첫 번째 인수로는 무효화할 라우트 세그먼�
 "next/navigation"이 제공하는 useParams 훅은 동적 라우팅하는 경우 동적으로 결정된 path값을 객체 형태로 반환합니다.
 
 ```javascript
-'use client'
+'use client';
 
-import { useParams } from 'next/navigation'
+import { useParams } from 'next/navigation';
 
 export default function ClientComponent() {
-  const params = useParams()
+  const params = useParams();
 
   // ,,,
 }
@@ -693,12 +690,12 @@ export default function ClientComponent() {
 "next/navigation"이 제공하는 usePathname 훅은 현재 URL의 path 값을 string으로 반환합니다.
 
 ```javascript
-'use client'
+'use client';
 
-import { usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation';
 
 export default function ClientComponent() {
-  const pathanem = usePathname()
+  const pathanem = usePathname();
 
   // ,,,
 }
@@ -709,29 +706,29 @@ export default function ClientComponent() {
 "next/navigation"이 제공하는 useSearchParams 훅은 현재 URL의 쿼리스트링 정보를 일기 전용인 URLSearchParams 객체를 반환합니다.
 
 ```javascript
-'use client'
+'use client';
 
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation';
 
 export default function ClientComponent() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
   // 쿼리스트링의 value 값을 요소로 갖는 배열을 반환합니다.
-  searchParams.getAll()
+  searchParams.getAll();
 
   // 쿼리스트링의 key 값을 요소로 갖는 이터레이터 객체를 반환합니다.
-  searchParams.keys()
+  searchParams.keys();
 
   // 쿼리스트링의 value 값을 요소로 갖는 이터레이터 객체를 반환합니다.
-  searchParams.values()
+  searchParams.values();
 
   // 쿼리스트링의 key, value 값을 요소로 갖는 배열을 요소로 갖는 이터레이터 객체를 반환합니다.
-  searchParams.entries()
+  searchParams.entries();
 
   // 인수로 전달한 콜백은 key, value 값을 순차적으로 전달받으며 실행됩니다.
-  searchParams.forEach((key, value) => { 
+  searchParams.forEach((key, value) => {
     // ,,,
-   })
+  });
 
   // ,,,
 }
@@ -743,8 +740,81 @@ export default function ClientComponent() {
 
 예를 들어, 현재 URL path 값이 "/blog/hello-world"인 경우 useSelectedLayoutSegment 훅은 "hello-world"를 반환하고, useSelectedLayoutSegments 훅은 ["blog", "hello-world"]를 반환합니다.
 
+## Caching
 
-### Caching
+### Server Actions
+
+Server Action은 React에 내장된 기능이며 form 제출 기능을 제공합니다. Server Action은 함수이며 컴포넌트 내 직접 정의하거나 별도의 파일로 분리하여 import하여 사용할 수 있습니다. Server Action 함수를 form 태그의 action 어트리뷰트에 전달하여 사용할 수 있습니다.
+
+Server Action 함수는 인수로 FormData 객체를 전달받습니다. 주의할 점으로 formData 객체로 폼 데이터에 접근하기 위해서는 form 내부 각 input들은 name 어트리뷰트를 갖고 있어야 합니다. 폼 데이터들을 접근할 때 input의 name 어트리뷰트 값으로 접근합니다.
+
+추가적으로 Server Action 함수 async 함수로 정의되어야 하며, 함수 코드 블록 최상단에 "use server" 선언문을 작성해주어야 하며 만약 분리된 파일로 정의된 경우 파일 최상단에 "use server"를 작성할 수 있습니다.
+
+Server Action 함수는 Next 서버에서 실행되는 함수이므로 클라이언트측 로직은 사용할 수 없으며 Server Action 함수 자체도 클라이언트 컴포넌트 내에서는 정의할 수 없습니다.
+
+```javascript
+export default function Page() {
+  // Server Action
+  async function create(formData: FormData) {
+    'use server';
+
+    // ,,,
+  }
+
+  return <form action={create}>,,,</form>
+}
+```
+
+#### useFormStatus
+
+useFormStatus 훅은 "react-dom"이 제공하는 클라이언트 훅으로 form 제출에 대한 정보를 제공합니다. useFormStatus 훅을 사용하는 컴포넌트는 form 태그를 갖는 컴포넌트 자식으로 작성되어야 합니다.
+
+```javascript
+'use client'
+
+import { useFormState } from 'react-dom'
+
+export default function SubmitButton() {
+  const { pending } = useFormState()
+
+  return (
+    <button type="submit" disabled={pending}>
+      Add
+    </button>
+  )
+}
+```
+
+#### useActionState
+
+useActionState 훅은 "react"가 제공하는 클라이언트 훅으로 Server Action이 반환하는 값에 접근할 수 있습니다. useFormStatus 훅과는 다르게 form 태그를 갖는 컴포넌트 내 작성할 수 있습니다.
+
+useActionState 훅 첫 번째 인수로는 Server Action 함수를 전달하고 두 번째 인수로는 Server Action이 반환하는 값의 초기값을 전달해주어야 합니다.
+첫 번째 인수로 전달하는 Server Action은 첫 번째 인수로 이전 Server Action이 반환한 값을 전달받으며, 두 번째 인수로는 FormData 객체를 전달받습니다.
+
+useActionState 훅은 배열을 반환하며 배열의 첫 번째 요소는 Server Action이 반환하는 값, 두 번째 요소는 React가 제어하는 Server Action을 반환합니다. 이때 두 번째 요소로 반환한 Server Action을 form 태그의 action 어트리뷰트로 전달하면 React가 Server Action이 반환하는 값에 접근할 수 있게 됩니다.
+
+```javascript
+'use client'
+
+import { useActionState } from 'react'
+
+import { createUser } from '@/app/actions'
+
+const initState = {
+  message: ''
+}
+
+export default function SignUp() {
+  const [state, formAction] = useActionState(createUser, initState)
+
+  return (
+    <form action={formAction}>
+      ,,,
+    </form>
+  )
+}
+```
 
 ### Request Memoization
 
