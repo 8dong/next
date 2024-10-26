@@ -6,7 +6,7 @@
 
 Next v13부터 app 디렉토리 구조에 따라 라우팅 라우팅되며 각 파일의 역할(기능)과 컨벤션이 지정되어 있습니다.
 
-또한 기본적으로 모든 컴포넌트들은 RSC(React Server Component)로 동작합니다. 만약 RCC(React Client Component)로 설정하기 위해서는 파일 최상단에 "use client";를 작성해야 합니다.
+또한 기본적으로 모든 컴포넌트들은 RSC(React Server Component)로 동작합니다. 만약 RCC(React Client Component)로 설정하기 위해서는 파일 최상단에 `"use client";`를 작성해야 합니다.
 
 ```javascript
 // app/page.tsx
@@ -25,7 +25,11 @@ export default function Page() {
 
 ```javascript
 // app/blog/[slug]/page.tsx
-export default function Page({ params }: { params: { slug: string } }) {
+interface PageProps {
+  params: { slug: string }; // 라우트 세그먼트 값을 params[folderName]으로 접근
+}
+
+export default function Page({ params }: PageProps) {
   /**
    * route: "/blog/a" -> { params: { slug: 'a' } }
    * route: "/blog/b" -> { params: { slug: 'b' } }
@@ -35,7 +39,7 @@ export default function Page({ params }: { params: { slug: string } }) {
 }
 ```
 
-> 동적 라우팅이란 URL 경로값으로 페이지 컴포넌트 내 렌더링될 정보를 동적으로 결정하여 페이지를 렌더링합니다. 이는 하나의 페이지를 재사용하여 여러 페이지로 동작하기 위해서 사용합니다.
+> 동적 라우팅이란 URL 경로값으로 페이지 컴포넌트 내 렌더링될 정보를 동적으로 결정하여 페이지를 렌더링합니다. 일반적으로 이는 하나의 페이지를 재사용하여 여러 콘텐츠를 동작하기 위해서 사용합니다.
 
 #### Catch-All Routes
 
@@ -47,11 +51,13 @@ export default function Page({ params }: { params: { slug: string } }) {
 
 - Route: "/app/shop/[...slug]/page.tsx" -> URL: "/shop/a/b/c" -> params: { slug: ['a', 'b', 'c'] }
 
+위 예제처럼 Catch-All Routes는 params로 여러 라우트 세그먼트 값들을 요소로 갖는 배열로 전달받습니다.
+
 #### Optional Catch-All Routes
 
 Catch-All Segments는 params가 1개 이상인 경우에만 활성화 되지만 "[[...forderName]]"으로 디렉토리명을 생성하면 해당 Catch-All Segments는 params가 0개인 경우에도 활성화 됩니다.
 
-- Route: "/app/shop/[...slug]/page.tsx" -> URL: "/shop" -> params: {}
+- Route: "/app/shop/[...slug]/page.tsx" -> URL: "/shop" -> params: { }
 
 위 예제처럼 params가 0개인 경우 params는 빈 객체가 전달됩니다.
 
@@ -67,11 +73,11 @@ Catch-All Segments는 params가 1개 이상인 경우에만 활성화 되지만 
 
 디렉토링명을 "@folderName"로 작성한 경우 라우트 세그먼트가 아닌 슬롯으로 설정되며 실제로 해당 경로는 무시됩니다.
 
-이는 하나의 레이아웃에 여러 page를 표시해주는 병렬 라우팅으로 동작합니다. 만약 "/app/@team/settings/page.tsx"가 존재할 때 "/"에서 "/settigns"로 이동하게 되면 "/app/page.tsx"가 렌더링된 상테에서 "/app/@team/settgins/page.tsx"도 병렬로 렌더링됩니다.
+이는 하나의 레이아웃에 여러 page를 표시해주는 병렬 라우팅으로 동작합니다. 만약 "/app/@team/settings/page.tsx"가 존재할 때 "/"에서 "/settigns"로 이동하게 되면 "/app/page.tsx"가 렌더링된 상테에서 "/app/@team/settgins/page.tsx"도 병렬적으로 렌더링할 수 있습니다. 실제 URL은 "/settings"이지만 "/app/page.tsx"가 렌더링된 상태를 유지하면서 "/app/@team/settings/page.tsx"도 렌더링 시킬 수 있습니다.
 
-이때 "@forderName/page.tsx"에서 export한 컴포넌트의 경우 @forderName와 동일한 레벨에 있는 layout 컴포넌트 prop으로 전달됩니다. 만약 동일한 레벨에 없다면 가장 가까운 layout.tsx의 Layout 컴포넌트에게 전달됩니다. 이때 전달되는 prop 네이밍은 디렉토리명(forderName)으로 전달됩니다.
+"@forderName/page.tsx"에서 export한 컴포넌트의 경우 @forderName와 동일한 레벨에 있는 layout 컴포넌트 prop으로 전달됩니다. 만약 동일한 레벨에 없다면 가장 가까운 상위 layout.tsx의 Layout 컴포넌트에게 전달됩니다. 이때 전달되는 prop 네이밍은 디렉토리명(forderName)으로 전달됩니다.
 
-예를 들어, "/app/@modal/page.tsx"가 export default한 컴포넌트는 "/app/layout.tsx"가 export default한 컴포넌트에 modal prop으로 전달됩니다.
+예를 들어, "/app/@modal/page.tsx"가 export default한 컴포넌트는 "/app/layout.tsx"가 export default한 Layout 컴포넌트에 modal prop으로 전달됩니다.
 
 ```javascript
 // app/layout.tsx
@@ -90,15 +96,51 @@ export default function Layout({ children, modal }: LayoutProps) {
 }
 ```
 
+<hr />
+
 병렬 라우팅의 주의할 점으로는 아래와 같습니다.
 
-- Soft Navigation하는 경우 Next는 현재 일치하는 슬롯이 없더라도 이전 활성화된 슬롯을 표시해줍니다.
+- Soft Navigation 사용하는 경우 Next는 현재 일치하는 슬롯이 없더라도 이전 활성화된 슬롯을 표시해줍니다. 또한 요청한 경로에 대한 페이가 없더라도 이전에 활성화된 페이지를 계속 표시해줍니다.
 
-- Hard Navigation하는 경우 Next는 먼저 매칭되는 슬롯을 확인하고 만약 없는 경우에는 default.tsx가 export default한 컴포넌트 렌더링을 시도합니다. 이때 default.tsx 파일조차 없다면 404에러가 발생하게 됩니다.
+```markdown
+app
+├── page.tsx
+│
+├── layout.tsx
+│
+├── @team
+│   └── settings
+│       └── page.tsx
+│
+└── @analytics
+    └── page.tsx
+```
 
-만약 "/app/@team/settings/page.tsx"가 존재하고 "/app/@analytics/page.tsx"만 존재할 때 Soft Navigation으로 "/settings"로 이동하는 경우 "/app/@team/settings/page/tsx"와 "/app/@analytics/page/tsx"가 렌더링되고, Hard Navigation하는 경우에는 "/app/@analytics/settings/page.tsx"를 찾지 못해 404 에러가 표시됩니다.
+app 디렉토리 구조가 위와 같으며 "/" 경로라면 "/app/@analytics/page.tsx"가 활성화됩니다.
 
-또한 설정한 슬롯과 동일한 이름의 라우트 세그먼트를 추가해서는 안됩니다. 예를 들어, "/app/@team/settings/page.tsx"가 존재할 때 "/app/settgins/page.tsx"가 존재해서는 안됩니다.
+이후 "/settings"로 Soft Navigation 사용했다면 추가적으로 "/app/@team/settings/page.tsx"로 활성화 됩니다. 즉, 기존에 활성화된 "/app/@analytics/page.tsx"가 비활성화 되지 않습니다.
+
+"/app/settings/page.tsx" 또한 존재하지 않지만 404 에러를 표시하지 않고 기존에 활성화된 페이지("/app/page.tsx") 렌더링을 유지합니다.
+
+- Hard Navigation 사용하는 경우 Next는 먼저 매칭되는 슬롯을 확인하고 만약 없는 경우에는 상위 디렉토리로 올라가면서 가장 가까운 default.tsx가 export default한 컴포넌트 렌더링을 시도합니다. 이때 default.tsx 파일조차 없다면 404에러가 발생하게 됩니다.
+
+```markdown
+app
+├── page.tsx
+│
+├── layout.tsx
+│
+├── @team
+│   └── settings
+│       └── page.tsx
+│
+└── @analytics
+    └── page.tsx
+```
+
+app 디렉토리 구조가 위와 같을 때 "/settings"로 Hard Navigation하는 경우 "/app/settings/page.tsx"가 존재하지 않아 404에러를 표시하게 됩니다. 만약 "/app/settings/page.tsx"가 있다 하더라도 "/app/@analytics/settings/page.tsx"이 없기 때문에 "/app/@analytics/default.tsx" 렌더링을 시도하는데, 해당 파일 조차 존재하지 않아 404에러가 발생시키게 됩니다.
+
+즉, Hard Navigation하는 경우에는 이전에 활성화된 슬롯이나 렌더링된 페이지에 대한 정보를 갖고 있지 않기 때문에 Soft Navigation과 다르게 동작하게 됩니다.
 
 ### Intercepting Routes
 
@@ -112,37 +154,108 @@ export default function Layout({ children, modal }: LayoutProps) {
 
 - (...): app 디렉토리 레벨의 라우트 세그먼트를 인터셉팅
 
+<hr />
+
 주의할 점으로 Route Groups, Slot(Parallel Routes), Private Routes 등 URL 경로에 영향을 주지 않는 것들은 무시되어 인터셉팅됩니다. 즉, file system이 아닌 route segment만을 고려하여 인터셉팅합니다.
 
-또한 Intercepting Routes는 Soft Navigation의 경우에만 Intercepting되며 Soft Navigation이 아닌 경우 기존 페이지 컴포넌트가 렌더링됩니다. 예를 들어, "/dashboard/@modal/(.i)"가 인터셉팅되지 않는다면 "/dashboard/i"로 라우팅됩니다.
+```markdown
+app
+├── page.tsx
+│
+├── layout.tsx
+│
+├── dashborad
+│   └── (..i)
+│       └── page.tsx
+│
+└── i
+    └── page.tsx
+```
+
+app 디렉토리 구조가 위와 같을 때 "/i"로 이동하는 경우 "app/i/page.tsx"가 아닌 "app/dashboard/(..i)/page.tsx"가 렌더링됩니다.
+
+Intercepting Routes는 Soft Navigation의 경우에만 Intercepting되며 Soft Navigation이 아닌 경우 기존 페이지 컴포넌트가 렌더링됩니다. 즉, "/i"로 Hard Navigation을 사용하여 이동하는 경우에는 "app/i/page.tsx"가 렌더링됩니다.
 
 #### Parallel Routes & Intercepting Routes
 
-Parallel Routes내 Intercepting Routes를 함께 사용하여 독립된 URL 경로를 갖는 모달을 구현할 수 있습니다. 독립된 URL 경로를 갖는 모달의 경우 URL을 통해 모달 내용을 공유할 수 있으며, 새로고침 하더라도 그 상태가 유지되고, 뒤로 가기 혹은 앞으로 가기를 통해 모달을 열거나 닫을 수도 있습니다.
+Parallel Routes내 Intercepting Routes를 함께 사용하여 독립된 URL 경로를 갖는 모달을 구현할 수 있습니다. 독립된 URL 경로를 갖는 모달의 경우 URL을 통해 모달 내용을 공유할 수 있으며, Hard Navigation을 사용하더라도 그 상태가 유지되고, 뒤로 가기 혹은 앞으로 가기를 통해 모달을 열거나 닫을 수도 있습니다.
+
+```markdown
+app
+├── page.tsx
+│
+├── layout.tsx
+│
+└── @modal
+    └── login
+        └── page.tsx
+```
+
+만약 위와 같은 app 디렉토리 구조를 가진 경우, "/login"으로 Soft Navigation 한다면 "/app/@modal/login/page.tsx"가 활성화 되지만, Hard Navigation을 사용하는 경우에는 404 에러가 발생하게 됩니다.
+
+앞서 설명한 것처럼 Parallel Routes의 경우 Hard Navigation 한다면 일치하는 페이지를 렌더링하게 되는데 위 구조의 경우 "/app/login/page.tsx" 파일이 존재하지 않아 404 에러가 발생하게 됩니다.
+
+```markdown
+app
+├── page.tsx
+│
+├── layout.tsx
+│
+├── @modal
+|   └── login
+|       └── page.tsx
+|
+└── login
+    └── page.tsx
+```
+
+그렇다면 위와 같은 구조를 갖는다면 Hard Navigation을 사용하면 404에러는 발생하지 않지만, Soft Navigation과 Hard Navigation 둘 다 "/app/login/page.tsx"가 렌더링되고 "/app/@modal/login/page.tsx"가 병렬 라우팅됩니다.
+
+일반적으로 모달의 경우 기존 페이지 렌더링을 유지하면서 모달을 표시해주어야 하지만 위의 경우 기존 페이지 렌더링을 유지하지 못하고 "/app/login/page.tsx"가 렌더링됩니다.
+
+<hr />
+
+구현하려던 동작은 Soft Navigation으로 "/login"으로 이동하게 되면 기존 렌더링된 페이지에 병렬로 "/app/@modal/login/page.tsx"가 렌더링되고, Hard Navigation하는 경우에는 404 에러가 발생하지 않으면서 "/app/login/page.tsx"만 렌더링되도록 하려면 Parallel Routes와 Intercepting Routes를 같이 사용하여 구현할 수 있습니다.
 
 ```javascript
-// app/@modal/(.)warning/page.tsx
+// app/@modal/(.)login/page.tsx
 
 import Modal from '@/shard/components/Modal';
 
 export default function Page() {
   return (
     <Modal>
-      <div>Warning,,,</div>
+      <form>Login Form,,,</form>
     </Modal>
   );
 }
 ```
 
 ```javascript
-// app/warning/page.tsx
+// app/login/page.tsx
 
 export default function Page() {
-  return <div>Warning,,,</div>;
+  return <form>Login Form,,,</form>;
 }
 ```
 
-"/warning"으로 Soft Navigation하는 경우에 Intercepting Routes로 지정한 "app/@modal/(.)warning/page.tsx"에서 export default한 컴포넌트가 "/app/layout.tsx" 컴포넌트 내 modal prop으로 전달되어 렌더링됩니다.
+"app/login/page.tsx"와 "app/@modal/(.)login/page.tsx"를 위와 같이 생성해줍니다.
+
+```markdown
+app
+├── page.tsx
+│
+├── layout.tsx
+│
+├── @modal
+|   └── (.)login
+|       └── page.tsx
+|
+└── login
+    └── page.tsx
+```
+
+디렉토리 구조가 위와 같을 때 Soft Navigation을 사용하여 "/login"으로 이동하는 경우 "/app/@modal/(.)login/page.tsx"가 렌더링됩니다. 추가적으로 Hard Navigation하여 이동한 경우에는 "/app/login/page.tsx"만이 렌더링됩니다.
 
 ### layout.tsx
 
@@ -160,7 +273,7 @@ import { ReactNode } from 'react'
 
 interface LayoutProps {
   children: ReactNode // app/page.tsx에서 export default된 컴포넌트
-  params: string // 다이나믹 라우팅되는 경우 동적 라우트 세그먼트 값
+  params?: { [key in string]: string } // 다이나믹 라우팅되는 경우 동적 라우트 세그먼트 값
 }
 
 export default function Layout({ children }: LayoutProps) {
@@ -189,7 +302,7 @@ Template 컴포넌트는 아래와 처럼 매번 렌더링이 필요한 경우�
 
 - "use client"를 작성하여 클라이언트 컴포넌트로 설정하고 useEffect나 useState훅에 의존하는 기능이 필요한 경우 사용할 수 있습니다.
 
-- next 기존 프레임워크 동작을 변경하고 싶을 때 사용할 수 있습니다. 예를 들어, Layout 컴포넌트 Suspense 컴포넌트를 사용하더라도 fallback 컴포넌트는 처음에만 표시되고 이후 라우팅되더라도 표시되지 않지만 Template 컴폰넌트는 라우팅될 때매다 표시해줍니다.
+- Next 기존 프레임워크 동작을 변경하고 싶을 때 사용할 수 있습니다. 예를 들어, Layout 컴포넌트 하위에 Suspense 컴포넌트를 사용하더라도 fallback 컴포넌트는 처음에만 표시되고 이후 라우팅되더라도 표시되지 않지만 Template 컴폰넌트는 라우팅될 때매다 표시해줍니다.
 
 ### page.tsx
 
@@ -264,10 +377,10 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   return (
-    <>
-      An Error occurred: {error.message}
+    <section>
+      An Error occurred: {error.message}<br />
       <button onClick={() => reset()}>Retry</button>
-    </>
+    </section>
   )
 }
 ```
@@ -284,22 +397,25 @@ not-found.tsx 파일은 매칭되는 라우트 세그먼트가 존재하지 않�
 
 Route Handler는 요청 하면 응답으로 페이지가 아닌 JSON을 응답으로 전달해주는 API 역할을 합니다. 즉, Route Handler는 서버에서 실행되는 함수로 쿠키나 헤더에 접근할 수 있습니다.
 
-Route Handler는 첫 번째 인수로 요청 객체를 전달받고, 두 번째 인수로는 동적 라우팅의 경우 params라는 프로퍼티를 갖는 객체를 전달받으며 params 프로러티는 동적 경로에 대한 정보를 객체로서 전달받습니다.
+Route Handler는 첫 번째 인수로 요청 객체(NextRequest)를 전달받고, 두 번째 인수로는 동적 라우팅의 경우 params라는 프로퍼티를 갖는 객체를 전달받으며 params 프로러티는 동적 경로에 대한 정보를 객체로서 전달받습니다.
 
 Route Handler는 "app/api" 디렉토리 내 추가할 수 있으며, 이후 중첩된 디렉토리명이 path값 일부로 사용됩니다. 또한 파일 네이밍은 "route.ts"로 추가해주어야 합니다.
+
 예를 들어, "app/api/items/[id]/route.ts"라는 파일을 추가하면 요청할 때는 "/api/items/1"로 요청할 수 있게 됩니다.
 
 Route Handlers가 지원하는 HTTP Method로는 GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS을 지원하며 지원합니다. route.ts 파일은 지원하는 메서드명을 갖는 함수를 export해야 하며 async 함수로 정의하여 API를 추가할 수 있습니다.
 
 ```javascript
 // app/api/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest, context: { params: { [key: string]: string } }) {
+export async function GET(request: NextRequest, context: { params?: { [key: string]: string } }) {
   try {
     const requestBody = await request.json(); // 요청 body 값
 
     const responseBody = { success: true };
+
     return NextResponse.json(responseBody, { status: 200 });
   } catch (error) {
     return NextResponse.json('Fail to fetch data', { status: 500 });
@@ -315,7 +431,7 @@ export async function GET(request: NextRequest, context: { params: { [key: strin
 
 - cookies 혹은 headers와 같은 Dynamic Functions를 사용하는 경우
 
-- Segment Config Options으로 캐싱 옵션을 명시한 경우
+- Route Segment Config Options으로 캐싱 옵션을 명시한 경우
 
 ### Middleware
 
@@ -386,7 +502,7 @@ request.nextUrl.searchParams;
 NextResponse.json({ success: true }, { status: 200 });
 
 // 특정 URL로 redirect시키는 응답을 생성합니다.
-// 클라이언트측에서 해당 응답을 전닯받게 되면 "/home" 경로로 이동하게 됩니다.
+// 클라이언트측에서 해당 응답을 전달받게 되면 "/home" 경로로 이동하게 됩니다.
 NextResponse.redirect(new URL('/home', reqeust.url));
 
 // rewrite 메서드는 route handler에서 사용할 수 없고, next middleware에서 사용할 수 있습니다.
@@ -510,6 +626,7 @@ export default function Page() {
 ```
 
 permanentRedirect 함수 첫 번째 인수로는 URL을 전달하고 두 번째 인수로는 객체를 전달할 수 있으며 type 프로퍼티에 "replace"(default) 혹은 "push"를 전달할 수 있습니다.
+
 주의할 점으로 Server Actions에서 사용할 경우에는 type의 default가 push로 동작하게 됩니다.
 
 #### redirect
@@ -530,18 +647,19 @@ redirect 함수 첫 번째 인수로는 URL을 전달하고 두 번째 인수로
 
 #### notFound
 
-"next/navigation"이 제공하는 notFound 함수는
+"next/navigation"이 제공하는 notFound 함수 호출 시 not-found.tsx 파일에서 export default된 컴포넌트가 렌더링됩니다.
 
 ## Functions
 
 ### cookies
 
-"next/headers"가 제공하는 cookies 함수는 RSC, Server Actions, Route Handlers에서 사용 가능한 함수로 요청 객체의 쿠키 값을 읽을 수 있습니다.
+"next/headers"가 제공하는 cookies 함수는 RSC, Route Handlers, Server Actions에서 사용 가능한 함수로 요청 객체의 쿠키 값을 읽을 수 있습니다.
 
 ```javascript
 import { cookies } from 'next/headers';
 
 export default function Page() {
+  // 요청 객체에 대한 쿠키
   const cookieStore = cookies();
 
   // 인수로 전달한 쿠키 이름과 매칭된 쿠키값을 반환합니다. 매칭된 쿠키가 없는 경우 undeinfed를 반환합니다.
@@ -561,6 +679,7 @@ export default function Page() {
 import { cookies } from 'next/headers';
 
 export async function GET() {
+  // 요청 객체에 대한 쿠키
   const cookieStore = cookies();
 
   // 요청 객체의 쿠키값을 set할 수 있습니다.
@@ -569,14 +688,14 @@ export async function GET() {
   cookieStore.set({ name: 'key', value: 'value' });
 
   // 요청 객체의 쿠키값을 제거할 수 있습니다.
-  // 주의할 점으로 set 메서드는 Server Actions와 Route Handlers에서만 사용할 수 있습니다.
+  // 주의할 점으로 delete 메서드는 Server Actions와 Route Handlers에서만 사용할 수 있습니다.
   cookieStore.delete('key');
 }
 ```
 
 ### headers
 
-"next/headers"가 제공하는 headers 함수는 Server Components에서 사용 가능한 함수로 요청 헤더 값을 읽을 수 있습니다.
+"next/headers"가 제공하는 headers 함수는 RSC, Route Handlers, Server Actions에서 사용 가능한 함수로 요청 헤더 값을 읽을 수 있습니다.
 
 headers 함수가 반환하는 헤더 값은 읽기 전용으로 set, delete와 같은 동작은 할 수 없습니다.
 
@@ -584,6 +703,7 @@ headers 함수가 반환하는 헤더 값은 읽기 전용으로 set, delete와 
 import { headers } from 'next/headers';
 
 export default function Page() {
+  // 요청 객체에 대한 헤더
   const headersList = headers();
 
   // headers 값을 key, value로 갖는 이터레이터 객체를 반환합니다.
@@ -628,7 +748,7 @@ export default function Page() {
 
 fetch의 Data Cache 주의할 점은 아래와 같습니다.
 
-- fetch는 기본적으로 force-cache를 사용하며, cookies나 headers와 같은 Dynamic Functions를 사용하는 경우에는 no-store를 기본적으로 사용하게 됩니다.
+- fetch는 기본적으로 force-cache를 사용하며, cookies나 headers와 같은 Dynamic Functions를 사용하는 경우에는 no-store으로 설정되어 Data Cache를 사용하지 않습니다.
 
 - fetch의 revalidate 값이 route revalidate보다 작은 경우 라우트 재생성 간격이 감소하게 됩니다.
 
@@ -638,7 +758,7 @@ fetch의 Data Cache 주의할 점은 아래와 같습니다.
 
 ### revalidatePath
 
-"next/cache"가 제공하는 revalidatePath 함수는 특정 경로에 대한 캐싱을 모두 무효화하여 최신 데이터를 반영되도록 도와줍니다. 즉, Next 서버측에 캐싱되어 있던 Data Cache와 Full Route Cache 모두 무효화하는 역항를 합니다.
+"next/cache"가 제공하는 revalidatePath 함수는 특정 경로에 대한 캐싱을 모두 무효화하여 최신 데이터를 반영되도록 도와줍니다. 즉, Next 서버측에 캐싱되어 있던 Data Cache와 Full Route Cache 모두 무효화하는 역할를 합니다.
 
 revalidatePath를 호출하면 해당 경로에서 Next 서버에 캐싱된 fetch 응답 데이터와 빌드 타임때 생성되어 캐싱된 페이지를 무효화시킵니다.
 이후 다음 번에 사용자가 해당 경로를 요청한 경우 Next가 새로운 데이터를 가져와 페이지를 다시 생성하여 응답으로 전달해줍니다. 이 과정에서 새롭게 생성된 정적 파일과 데이터가 캐시에 저장됩니다.
@@ -703,7 +823,7 @@ export default function ClientComponent() {
 
 ### useSearchParams
 
-"next/navigation"이 제공하는 useSearchParams 훅은 현재 URL의 쿼리스트링 정보를 일기 전용인 URLSearchParams 객체를 반환합니다.
+"next/navigation"이 제공하는 useSearchParams 훅은 현재 URL의 쿼리스트링 정보를 읽기 전용인 URLSearchParams 객체를 반환합니다.
 
 ```javascript
 'use client';
@@ -818,7 +938,7 @@ Request Memoization은 동일한 라우트에서 동일한 설정을 갖는 fetc
 
 예를 들어, Layout과 Page 컴포넌트가 서버 컴포넌트로 작성되었고, 두 컴포넌트 모두 동일한 설정을 갖는 fetch 함수를 호출하게 되면 요청이 두 번 전달되지 않고 단일 요청으로 전달됩니다.
 
-> Request Memoization은 GET 메서드인 fetch에만 적용되며 서버 컴포넌트에만 해당됩니다. 즉, Route Handlers의 fetch에는 해당되지 않습니다.
+> Request Memoization은 GET 메서드인 fetch에만 적용되며 서버 컴포넌트에서의 fetch에만 해당됩니다. 즉, Route Handlers에서의 fetch는 해당되지 않습니다.
 
 ### Data Cache
 
@@ -826,13 +946,13 @@ Next는 fetch 함수를 통해 서버에서 가져온 응답 데이터를 Next �
 
 명시적으로 Next 서버에 캐싱된 응답 데이터를 무효화하고 재검증하기 위해 아래와 같은 방법을 사용할 수 있습니다.
 
-- revalidatePath('/,,,', 'page' | 'layout'): 특정 라우트 세그먼트를 전달하여 라우트 전체 fetch에 대해서 재검증을 수행할 수 있습니다.
+- Route Segment Config: layout.tsx, page.tsx, Route Handler에 dynamic 혹은 revalidate 옵션을 사용하여 라우트 전체에 대한 Data Cache 설정할 수 있습니다.
 
-- fetch('https://,,,', { cache: 'force-cache' | 'no-store' }): cache 옵션으로 개별 요청에 대한 응답 데이터 캐싱 사용여부를 설정할 수 있습니다.
+- revalidatePath('/,,,', 'page' | 'layout'): Route Handlers나 Server Actions에서 특정 라우트 세그먼트를 전달하여 라우트 전체 fetch에 대해서 재검증을 수행할 수 있습니다.
+
+- fetch('https://,,,', { cache: 'no-store' }): cache 옵션으로 개별 요청에 대한 응답 데이터 캐싱 사용여부를 설정할 수 있습니다.
 
 - fetch('https://,,,', { next: { revalidate: number }}): next.revalidate 옵션으로 개별 요청에 대한 응답 데이터가 캐싱될 시간을 초단위로 작성할 수 있습니다.
-
-- Route Segment Config: dynamic 혹은 revalidate 옵션을 사용하여 라우트 전체에 대한 캐싱을 설정할 수 있습니다.
 
 ### Full Route Cache
 
@@ -840,11 +960,11 @@ Next는 fetch 함수를 통해 서버에서 가져온 응답 데이터를 Next �
 
 만약 페이지 생성 방식을 명시적으로 변경하고 싶다면 아래와 같은 방법을 사용할 수 있습니다.
 
-- Route Segments Config: dynamic 혹은 revalidate 옵션을 사용하여 페이지 생성 방식을 설정할 수 있습니다.
+- Route Segments Config: layout.tsx, page.tsx, Route Handler에 dynamic 혹은 revalidate 옵션을 사용하여 페이지 생성 방식을 설정할 수 있습니다.
 
-- revalidatePath('/,,,', 'page' | 'layout'): 특정 라우트 세그먼트를 전달하여 페이지 생성 시점을 설정할 수 있습니다.
+- revalidatePath('/,,,', 'page' | 'layout'): Route Handlers나 Server Actions에서 특정 라우트 세그먼트를 전달하여 페이지 생성 시점을 설정할 수 있습니다.
 
-> Dynamic Functions(cookies, headers), searchParams prop 혹은 Data Cache를 사용하지 않는 "no-store" 옵션을 사용하는 경우 해당 페이지는 Full Route Cache가 동작하지 않게 됩니다. 즉, Full Route Cache가 동작하는 경우는 Data Cache를 사용하며 Dynamic Functions나 searchParams porp을 사용하지 않는 경우에만 Full Route Cache가 동작하게 됩니다.
+> Dynamic Functions(cookies, headers), searchParams prop 혹은 Data Cache를 사용하지 않는 경우 해당 페이지는 Full Route Cache가 동작하지 않게 됩니다. 즉, Full Route Cache가 동작하는 경우는 Data Cache가 사용하며 Dynamic Functions나 searchParams porp을 사용하지 않는 경우에만 Full Route Cache가 동작하게 됩니다.
 
 ### Route Cache
 
@@ -859,7 +979,7 @@ Dynamically Rendered의 경우에는 캐싱 지속시간이 30초이고, Statica
 
 Route Cache 기능은 아예 끌 수 는 없으며 무효화하고자 한다면 아래와 같은 방법을 사용할 수 있습니다.
 
-- revalidatePath('/,,,', 'page' | 'layout'): 특정 라우트 세그먼트를 전달하여 Route Cache를 무효화할 수 있습니다.
+- revalidatePath('/,,,', 'page' | 'layout'): Route Handlers나 Server Actions에서 특정 라우트 세그먼트를 전달하여 Route Cache를 무효화할 수 있습니다.
 
 - cookies: "next/headers"가 제공하는 cookies 함수로 set 혹은 delete하는 경우 Route Cache가 무효화됩니다. 이때 set와 delete의 경우에는 Server Actions, Route Handlers에서만 가능하므로 Route Cache의 경우에는 Server Actions에만 해당됩니다.
 
